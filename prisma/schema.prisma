@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  influencers Influencer[]
+
+  @@map("categories")
+}
+
+model Region {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  influencers Influencer[]
+
+  @@map("regions")
+}
+
+model Influencer {
+  id               Int                  @id @default(autoincrement())
+  name             String
+  username         String
+  platforms        String // JSON array stored as string
+  categoryId       Int
+  category         Category             @relation(fields: [categoryId], references: [id])
+  gender           String // "Male" or "Female"
+  phoneNumber      String?
+  advertisingRate  Float
+  followersCount   Int
+  regionId         Int
+  region           Region               @relation(fields: [regionId], references: [id])
+  notes            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  campaignInfluencers CampaignInfluencer[]
+
+  @@map("influencers")
+}
+
+model Campaign {
+  id             Int                  @id @default(autoincrement())
+  title          String
+  description    String?
+  selectedFields String // JSON array of field names to include in PDF
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  campaignInfluencers CampaignInfluencer[]
+
+  @@map("campaigns")
+}
+
+model CampaignInfluencer {
+  id            Int        @id @default(autoincrement())
+  campaignId    Int
+  campaign      Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  influencerId  Int
+  influencer    Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+
+  @@unique([campaignId, influencerId])
+  @@map("campaign_influencers")
+}
